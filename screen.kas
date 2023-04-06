@@ -1,4 +1,4 @@
-'kas2010 screen 예제 소스: 제공자 godgle(갓글)
+'kas2010 screen 예제: 제공자 godgle(갓글) 
 screen 1,1 
 print ,,,"전체 윈도우 모드 
 pause 
@@ -57,4 +57,4 @@ pause
 screen ,,,,180,266,,4,,,13,"cuta003.bmp" 
 print 70,180,,"ⓥ14,투명그림창" 
 pause 
-  
+end  
