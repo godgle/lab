@@ -1,3 +1,5 @@
+'filename: typing.kas
+
 SCREEN ,,,,415,559,"",4,,,0,"back.bmp"
 
 한영=0
