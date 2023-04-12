@@ -1,0 +1,245 @@
+SCREEN ,,,,415,559,"",4,,,0,"back.bmp"
+
+한영=0
+start:
+SCREENCREATE 1,415,559
+SCREENCREATE 2,415,559
+SCREENCOPY 0,1,18,90,409,460,18,90,409,460,0
+SCREENCOPY 0,2,18,90,409,448,18,90,409,448,0
+SHAPELOAD 1,"exit.bmp",3,1,3,,,19,19
+SHAPELOAD 2,"tback.bmp",2,1,2,,,394,90
+SHAPELOAD 3,"tbad.bmp",2,2,1,,,33,28
+GET 1,19,87,409,523
+
+T_Chk=1500,imsi=-200,ans=0,Tot=0
+xcount=0
+
+DIM word$[30], Txt[30,3]
+FOR i,0,30
+  word$[i]="",20
+NEXT
+BUTTONSET 100,"한타",,,321,532,40,19,,53,43,145,,,,mode,0
+BUTTONSET 101,"영타",,,367,532,40,19,,53,43,145,,,,mode,0
+BUTTONSET 99,,,,383,26,19,19,1,1,2,3,2,4
+BUTTONON 99,End,1
+GET 12,292,29,358,49  ' score
+TEXT 349,33,Tot,1,14,15,,,,,,7
+
+TIMERSET 0,T_Chk,timer0
+TIMERON 0
+
+input:
+'Size=(한영)=0*16+
+INPUT 155,415,a$,20,10,"",,16,15,0,한영,0xff
+IF a$=""
+  GOTO input
+ENDIF
+
+FOR n,1,30
+  IF word$[n]<>"" & a$=word$[n]
+    CALL correct,n
+  ENDIF
+NEXT
+GOTO input
+
+SUB correct,n                 'if OK delete Sub Routine!!!!
+  SOUND "chik.wav"  
+  IF n=30
+    SCREENCOPY 1,2,19,89,408,457,19,89,408,457
+    SCREENCOPY 1,0,19,89,408,457,19,89,408,457
+    FOR ii,1,30
+      word$[ii]=""
+    NEXT
+    Tot=Tot+(Len{word$[n]}*3)*2
+    PUT 12
+    TEXT 349,33,Tot,1,14,15,,,,,,7
+    EXIT sub
+  ENDIF
+  IF n=15
+    SOUND "harpgliss.wav"
+    TIMEROFF 0
+    FOR ii,1,18
+      SCREENCOPY 0,2,19,110,139,444,19,110-20,139,444-20
+      SCREENCOPY 0,2,139,110,266,406,139,110-20,266,406-20
+      SCREENCOPY 0,2,266,110,408,444,266,110-20,408,444-20
+      WAIT 100
+      BOX 266,426,408,447,15,1,15,1,0,0
+      BOX 18,426,139,447,15,1,15,1,0,0
+      BOX 145,387,268,406,15,1,15,1,0,0
+      BOX 19,90,407,107,15,1,15,1,0,0
+      SCREENCOPY 2,0,19,110-20,139,444-20,19,110-20,139,444-20
+      SCREENCOPY 2,0,139,110-20,266,406-20,139,110-20,266,406-20
+      SCREENCOPY 2,0,266,110-20,408,444-20,266,110-20,408,444-20
+    NEXT
+    TIMERON 0  
+    FOR ii,1,30
+      word$[ii]=""
+    NEXT
+    SCREENON 2
+    CLS 15
+    SCREENON 0
+    Tot=Tot+(Len{word$[n]}*3)*2
+    PUT 12
+    TEXT 349,33,Tot,1,14,15,,,,,,7
+  ENDIF
+  TEXT Txt[n,1],70+Txt[n,3]*20,word$[n],0,15,15
+  SCREENON 2
+  TEXT Txt[n,1],90+Txt[n,3]*20,word$[n],0,15,15
+  SCREENON 0
+  Tot=Tot+(Len{word$[n]}*3)
+  word$[n]=""
+  PUT 12
+  TEXT 349,33,Tot,1,14,15,,,,,,7
+ENDSUB
+
+SUB timer0
+  ans=ans+1
+  IF ans=31
+    ans=1
+  ENDIF
+  RESTORE label("data"+str(한영)),Rnd{1,100},0
+  READ word$[ans]
+
+  recall:
+  temp=Rnd{30,330}
+  IFGOTO abs(temp-imsi)<30,recall
+  imsi=temp  
+  SHAPE 3,1,temp+Len{word$[ans]}/2,62,33,28,2,,1
+  CALL screenchg
+  SHAPE 3,2,temp+Len{word$[ans]}/2,62,33,28,2,,1
+  IF ans%10=9
+    T_Chk=T_Chk-50
+    IF T_Chk=800
+      T_Chk=1500
+    ENDIF
+    TIMERSET 0,T_Chk,timer0
+    TIMERON 0
+  ENDIF
+
+ENDSUB
+
+SUB screenchg
+  BOX 22,91,406,105,15,1,15,1,0,0
+  CALL centerx
+  SCREENCOPY 2,0,19,110,139,444,19,110,139,444
+  SCREENCOPY 2,0,139,110,266,406,139,110,266,406
+  SCREENCOPY 2,0,266,110,408,444,266,110,408,444
+
+  IF ans=30
+    TEXT temp,90,word$[ans],0,15,9
+  ELSE
+    IF ans=15
+      TEXT temp,90,word$[ans],0,15,5
+    ELSE
+      TEXT temp,90,word$[ans],0,15,0
+    ENDIF
+  ENDIF
+  Txt[ans,1]=temp,Txt[ans,2]=temp+Len{word$[ans]}*7
+  Txt[ans,3]=0
+  FOR ii,1,30
+    Txt[ii,3]=Txt[ii,3]+1
+  NEXT
+  CALL chk1
+  SCREENCOPY 0,2,19,90,408,424,19,110,408,444
+ENDSUB
+
+SUB centerx
+  LOCAL j
+  FOR j,1,30
+    IF (Txt[j,3]=16)& (word$[j]<>"") & (((Txt[j,1]>140)&(Txt[j,1]<265)) | ((Txt[j,2]>140)&(Txt[j,2]<265)))
+      SCREENON 2
+      TEXT Txt[j,1],70+17*20,word$[j],0,15,15
+      SCREENON 0
+      BEEP 100,10
+      xcount=xcount+1
+      BOX 147+29*((xcount+3)%4),462+14*int((xcount-1)/4),174+29*((xcount+3)%4),474+14*int((xcount-1)/4),1,11,15,1
+      IF xcount=16
+        CALL Gameover
+      ENDIF
+      word$[j]=""
+      EXIT sub
+    ENDIF
+  NEXT
+ENDSUB
+
+SUB chk1
+  LOCAL j
+  FOR j,1,30
+    IF Txt[j,3]=19 & word$[j]<>""
+      BEEP 100,10
+      xcount=xcount+1
+      BOX 146+29*((xcount+3)%4),462+14*int((xcount-1)/4),173+29*((xcount+3)%4),474+14*int((xcount-1)/4),1,11,15,1
+      IF xcount=16
+        CALL Gameover
+      ENDIF
+      word$[j]=""
+      EXIT sub
+    ENDIF
+  NEXT
+ENDSUB
+
+SUB End
+  CALL Gameover
+ENDSUB
+
+SUB Gameover
+  TIMEROFF
+  BUTTONOFF
+  BOX 66,179,362,237,0,0,15,0,0,0
+  FOR i, 1, 150,2
+    DSHAPE "gameover.bmp",215-i,180,i*2,58,0
+  NEXT
+  BOX 98,246,322,300,0,0,15,0,0,0
+  CELLBOX 2,1,165,275,40,20,11,10,160,0,80,2,0
+  TEXT 209,246,"게임을 종료 하시겠습니까?",2,20,RGB(0xf09070),,1,,,,2
+  TEXT 209,277,"Yes        No",2,16,160,,1,,,,2
+  SELECT sel,2,0,,0,,2,2,1,165,275,40,20,11,10,0,4
+  IF sel <> 1
+    PUT 1
+    PUT 12
+    GOTO start
+  ELSE
+    IF INSTR(URLINFO(5),"/")
+      HTMLSTART
+        HTML <html>
+        HTML <head>
+        HTML </head>
+        HTML <body onload=window.close()>
+        HTML </BODY>
+        HTML </html>
+      HTMLEND
+    ELSE
+      END
+    ENDIF
+    END
+  ENDIF
+ENDSUB
+
+
+mode:
+한영=buttoninfo()-100
+PUT 1
+PUT 12
+GOTO start
+data0:  '14*7
+DATA "가족","나무","다람쥐","라일락","마음","바람","사랑해","아버지","저녁놀","추수","코카콜라","타이타닉","펌","호리병"
+DATA "고구마","너구리","두루미","룰렛","마당쇠","보라빛","송아지","여물","조심조심","차례","코알라","터미네이터","파도","할아버지"
+DATA "군밤","누룽지","돌맹이","람보","맷집","병원","설악산","예절","주름살","처음처럼","카레라이스","토네이도","보리떡","허리띠"
+DATA "거북이","노다지","단풍나무","로보트","멈추다","부산","설마","옥수수","절간","초행길","캥거루","탁자","풍선","홀수"
+DATA "고등학교","느티나무","돈벼락","라디오","몽상","벽돌","손오공","요리책","주막","철도","콜로라도","특집","폴더","참깨"
+DATA "귤","낙엽","동태","램프","망치","붕어낚시","스쳐가는","역동","정책","착각","크리스마스","텔리비젼","딱지","형사"
+DATA "교실","낚시","덕장","달팽이","명상","병아리","송환용","욕심","장관","출석부","킹콩","탁구","닭","홈런"
+DATA "거문고","뉴스"
+
+data1:
+DATA abandon,become,cross,desert,effect,file,game,hot,insure,jack,kid,line,music
+DATA number,open,person,question,repeat,school,timer,user,video,write,yacht,zero
+
+DATA absolute,bedroom,come,degree,elephant,food,great,high,insert,job,korea,limit,museum
+DATA No,oracle,picture,queen,rest,student,teacher,use,victory,wrap,young,zoo
+
+DATA apple,beside,coffee,decision,eatting,free,guitar,hospital,in,jean,komodo,lead,mountain
+DATA nice,orient,piano,quack,radio,speed,tea,unable,vicar,woman,yodel,zeal
+
+DATA an,biology,camel,department,eternal,friend,guess,horse,iris,jewel,krill,love,mistake
+DATA neap,object,print,quart,rib,song,to,umbrella,vote,weak,yield,zig,kas
